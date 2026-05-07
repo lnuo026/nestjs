@@ -1,0 +1,19 @@
+{
+  "compilerOptions" :{
+    "target":"ES2025",
+    "module":"commonjs",
+    // 编译后的 .js 文件输出到 dist 文件夹
+    "outDir":"./dist",
+    "rootDir":"./src",
+    "strict":true,
+    // 让 import x from 'y' 这种语法正常工作
+    "esModuleInterop":true,
+    "skipLibCheck":true,
+    "forceConsistentCasingInFileNames": true,
+    //  开启装饰器语法！
+    "experimentalDecorators": true,
+    // 开启编译时自动生成 metadata（依赖注入靠它）
+    "emitDecoratorMetadata": true,
+    },
+    "include": ["src/**/*"]
+}
