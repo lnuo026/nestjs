@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { WinstonModule } from "nest-winston";
+import { HealthModule } from "./health/health.module";
 
 
 import { validationSchema } from "./config/validation";
@@ -21,6 +22,7 @@ import { TodosModule } from "./module/TodosModule";
     }),
     //  注册日志系统,让 Nest 的日志输出走 Winston。
     WinstonModule.forRoot(winstonConfig),
+    HealthModule, 
     TodosModule
   ],
   controllers: [AppController],
