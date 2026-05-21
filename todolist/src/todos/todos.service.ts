@@ -1,59 +1,59 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { randomUUID } from "crypto";
-import { Todo , TodoPriority } from "./entities/todo.entity";
 import { CreateTodoDto } from "./dto/create-todo.dto";
 import { UpdateTodoDto } from "./dto/update-todo.dto";
+import { Model } from "mongoose";
+import { Todo, TodoDocument, TodoPriority } from "./schemas/todo.schema";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class TodosService{
-     private todos: Todo[] = [];
+     constructor(
+          // "把名字叫 'Todo' 的 Model 注入进来"
+          // 存到实例属性，所有方法都通过它操作数据库
+          // 这里的 Todo.name 必须和 forFeature 里注册的名字一致，否则找不到
+          @InjectModel(Todo.name) private readonly todoModel: Model<TodoDocument>,
+     ){}
 
-     findAll():Todo[]{
-          return this.todos;
+     // 查询 todos collection 里的所有文档，不加条件就是全部
+     // .exec() — 执行这个查询，返回 Promise
+     // 返回值是 Promise<TodoDocument[]>，因为 Mongoose 操作是异步的，最终会得到一个 TodoDocument 数组。
+     findAll():Promise<TodoDocument[]>{
+          return this.todoModel.find().exec();
      }
 
-     findOne(id: string):Todo{
-          const todo =  this.todos.find((t) => t.id === id);
+     async findOne(id: string): Promise<TodoDocument>{
+          const todo = await this.todoModel.findById(id).exec();
           if(!todo){
-               throw new NotFoundException(`Todo with id ${id} not find`)               
+               throw new NotFoundException(`Todo with id ${id} not found`);
           }
           return todo;
      }
 
-     create(dto: CreateTodoDto): Todo{
-          const now = new Date();
-          const newTodo: Todo = {
-               id: randomUUID(),
-               title: dto.title,
-               description: dto.description,
+     // 在数据库里新建一条文档，返回创建好的文档
+     // 把 DTO 的字段展开
+     create(dto: CreateTodoDto): Promise<TodoDocument>{
+          return this.todoModel.create({
+               ...dto,
                done: false,
-               priority: dto.priority ?? TodoPriority.MEDIUM,
-               createdAt: now,
-               updatedAt: now,
-          };
-          this.todos.push(newTodo);
-          return newTodo;
+               priority:dto.priority || TodoPriority.MEDIUM,
+          });
      }
 
-     update(id: string ,dto:UpdateTodoDto):Todo{
-          const todo = this.findOne(id);
-          // Object.assign 把源对象的所有属性 复制到 目标对象 中修改目标对象本身，返回修改后的目标对象
-          // 如果源对象有相同的属性名，会覆盖目标对象的值
-          // 如果目标对象没有该属性，会添加这个属性
-          Object.assign(todo, dto,{updatedAt: new Date()});
+     async update(id: string, dto: UpdateTodoDto): Promise<TodoDocument>{
+          //  默认返回更新前的旧数据，加了这个才返回更新后的新数据
+          // timestamps: true 已经在 Schema 里设了
+          const todo = await this.todoModel.findByIdAndUpdate(id, dto, { new: true }).exec();
+          if(!todo){
+               throw new NotFoundException(`Todo with id ${id} not found`);
+          }
           return todo;
      }
 
-     // 返回值包含两个信息：deleted 是否删除成功 和 id
-     // deleted 这个属性必须存在，且必须是 true
-     // id 这个属性必须存在，且必须是字符串
-     remove(id: string):{deleted: true ;id:string}{
-          const index = this.todos.findIndex((t) => t.id === id);
-          if(index === -1){
-               throw new NotFoundException(`Todo with id ${id} not find`)
+     async remove(id: string): Promise<{ deleted: true; id: string }> {
+          const result = await this.todoModel.findByIdAndDelete(id).exec();
+          if (!result) {
+               throw new NotFoundException(`Todo with id ${id} not found`);
           }
-          // array.splice(开始位置, 删除个数, 要添加的元素);
-          this.todos.splice(index,1);
-          return{ deleted: true ,id};
+          return { deleted: true, id };
      }
 }

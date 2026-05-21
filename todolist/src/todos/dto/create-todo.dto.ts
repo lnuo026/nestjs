@@ -1,4 +1,4 @@
-import { TodoPriority } from '../entities/todo.entity';
+import { TodoPriority } from '../schemas/todo.schema';
 import { IsString , IsNotEmpty ,IsOptional , IsEnum ,MaxLength} from 'class-validator';
 
 export class CreateTodoDto {
