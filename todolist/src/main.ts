@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -7,11 +7,29 @@ import { Logger} from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './common/logger/winston.config';
 
+// cookie-parser 是 Express 中间件
+import cookieParser = require('cookie-parser');
+import { JwtAuthGuard } from './common/guards/jwt.guard'; 
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
+
+// 把 cookie-parser 注册为全局中间件。之后每个请求进来，它会自动解析 Cookie header，
+// 把结果放进 req.cookies，jwt.strategy.ts 才能读到 req.cookies.access_token
+  app.use(cookieParser());
+
+  //Reflector 是读元数据的工具类，JwtAuthGuard 需要它来读取 @Public() 装饰器附加的元数据.
+  const reflector = app.get(Reflector);
+  // 全局使用 JWT Guard，保护所有路由。除非路由上有 @Public() 装饰器，否则都需要 JWT 验证。
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  // 全局使用响应拦截器，统一格式化所有成功响应。Controller 里直接 return 数据，拦截器会把它包装成 { data: ..., message: 'ok' } 的格式。
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+
+
 
   // 所有错误统一输出：statusCode / error / message / timestamp / path
   // 前端只处理一种格式

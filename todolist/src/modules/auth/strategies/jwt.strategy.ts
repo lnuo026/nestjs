@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy,JWT_STRATEGY){
                     (req) => req?.cookies?.access_token ?? null,
                ]),
                // 验证 JWT 签名用的密钥。签发时用这个密钥加密，验证时用同一个密钥解密。两边必须一致，否则验证失败。
-               secretOrKey: config.get<string>('JWT_SECRET'),
+               secretOrKey: config.get<string>('JWT_SECRET')!,
                // Token 过期了就拒绝，返回 401。生产环境必须设为 false
                ignoreExpiration: false, // JWT过期后不接受，需要重新登录获取新 token
           });

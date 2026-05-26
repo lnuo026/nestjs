@@ -9,8 +9,10 @@ import { validationSchema } from "./config/validation";
 import { winstonConfig } from "./common/logger/winston.config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { TodosModule } from "./module/TodosModule";
-import { config } from "process";
+import { TodosModule } from "./modules/TodosModule";
+
+import { AuthModule } from "./modules/auth/auth.module";
+import { UserModule } from "./modules/user/user.module";
 
 
 // ConfigModule.forRoot(...) 会在应用启动时读取环境变量，并用你在 validation.ts 定义的规则校验
@@ -27,12 +29,15 @@ import { config } from "process";
     MongooseModule.forRootAsync({
       // "这个工厂函数需要 ConfigModule 提供的东西"
       imports: [ConfigModule],
+
       // "具体注入 ConfigService 到工厂函数"
       inject:[ConfigService],
+
       // "工厂函数定义如下：接收 ConfigService 作为参数，返回一个对象"
       // 一个工厂函数。NestJS 启动时调用它，它返回 MongooseModule 需要的配置对象。
       // 在这里我们用工厂函数先注入 ConfigService，再从中读 URI。
       useFactory:(config: ConfigService)=>({
+
         // 工厂函数内部：从 ConfigService 读 MONGODB_URI，包装成 { uri: "..." } 对象返回。
         uri: config.get<string>('MONGODB_URI'),
       }),
@@ -41,7 +46,9 @@ import { config } from "process";
     //  注册日志系统,让 Nest 的日志输出走 Winston。
     WinstonModule.forRoot(winstonConfig),
     HealthModule, 
-    TodosModule
+    TodosModule,
+    AuthModule,
+    UserModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,10 +1,11 @@
 import { Controller, Get, UseGuards, Req, Res } from "@nestjs/common";
-import {  Response } from "express";
+//"type" 关键字明确说：这个 import 只用于类型检查，编译成 JS 后自动删掉
+import type {  Response } from "express";
 import { AuthService } from "./auth.service";
 import { GoogleAuthGuard } from "./guards/google-auth.guard";
 import { Public } from "src/common/decorators/public.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
-import { UserDocument } from "../user/schemas/user.schema";
+import type { UserDocument } from "../user/schemas/user.schema";
 
 // 这个 Controller 处理所有 /auth/* 路由。
 @Controller('auth')

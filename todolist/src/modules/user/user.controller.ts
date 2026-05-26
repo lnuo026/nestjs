@@ -3,7 +3,7 @@
 import { Controller, Get} from "@nestjs/common";
 import { Auth } from "src/common/decorators/auth.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
-import { UserDocument } from "./schemas/user.schema";
+import type { UserDocument } from "./schemas/user.schema";
 
 // 这个 Controller 处理所有 /users/* 路由。
 @Controller('users')

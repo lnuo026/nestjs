@@ -16,11 +16,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, GOOGLE_STRATEGY){
      ) {
           // 调用父类构造函数，传入 Google OAuth 需要的配置
           // <> 是 TypeScript 的泛型
+          // 三个 config.get 后面都加 !（非空断言），告诉 TypeScript"这个值一定存在"（Joi 已经保证必填了）
+          // 应用启动时如果没有这个变量会直接报错拒绝启动。所以运行到这里时它一定有值。
+          // ! 告诉 TypeScript："我保证这个值不是 undefined"
           super({
-               clientID: config.get<string>('GOOGLE_CLIENT_ID'),
-               clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET'),
-               callbackURL: config.get<string>('GOOGLE_CALLBACK_URL'),
+               clientID: config.get<string>('GOOGLE_CLIENT_ID')!,
+               clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET')!,
+               callbackURL: config.get<string>('GOOGLE_CALLBACK_URL')!,
                scope: ['email', 'profile'],
+               passReqToCallback: false, // 不需要把 Request 对象传给 validate()，所以设为 false
           });
      }
 
