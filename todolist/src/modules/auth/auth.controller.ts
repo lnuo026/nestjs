@@ -24,24 +24,24 @@ export class AuthController {
      // Google 授权完成后跳回这里：
      // @CurrentUser() — 取出 google.strategy.ts 放进 req.user 的用户对象
      // @Res({ passthrough: true }) — 注入 Express 的 res 对象，用来写 Cookie。
-     // passthrough: true 是关键：告诉 NestJS "我只是要用 res 写 Cookie，响应数据还是交给你处理"。
      // 不加这个，NestJS 会把响应控制权完全交给你，拦截器和异常过滤器都失效
      @Public()
      @UseGuards( GoogleAuthGuard)
      @Get('google/callback') // GET /auth/google/callback
      googleCallback(
           @CurrentUser() user: UserDocument,
-          @Res( {passthrough: true}) res: Response,
+          @Res() res: Response,
      ){
-          return this.authService.login(user, res);
+          this.authService.login(user, res); // 登录成功后，AuthService 会在 res 上设置 JWT Cookie
+          res.redirect('http://localhost:3000/users/profile'); //callback 完成后不返回数据，而是重定向到前端页面
      }
 
 
      // 退出登录，清除 Cookie，返回提示信息
      @Public()
      @Get('logout')
-     logout(@Res({passthrough: true}) res: Response){
+     logout(@Res() res: Response){
           this.authService.logout(res);
-          return { message: 'logged out' };
+          res.redirect('http://localhost:3000'); // 退出登录后重定向到主页
      }
 };
