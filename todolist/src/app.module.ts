@@ -1,3 +1,4 @@
+import { ThrottlerModule } from "@nestjs/throttler";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -19,6 +20,15 @@ import { UserModule } from "./modules/user/user.module";
 // isGlobal: true 让你在任意模块里都能直接注入 ConfigService，无需每个模块都写 imports: [ConfigModule]
 @Module({
   imports: [
+    // 防止暴力攻击
+    ThrottlerModule.forRoot([{
+      // ttl 是 time-to-live，时间窗口。意思是：每个 IP 在 60 秒内最多请求 100 次，超过返回 429。
+      ttl:60000,
+      limit:100,
+    }]),
+
+
+
     //  负责加载和校验环境变量
     ConfigModule.forRoot({
       isGlobal: true,
